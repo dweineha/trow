@@ -6,6 +6,7 @@ mod metrics;
 mod proxy_auth;
 mod server;
 mod temporary_file;
+pub mod api_types;
 
 use std::future::Future;
 

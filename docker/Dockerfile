@@ -26,7 +26,6 @@ COPY Cargo.toml .
 COPY Cargo.lock .
 COPY .cargo/config.toml .cargo/config.toml
 COPY trow-server/ trow-server/
-COPY trow-protobuf/ trow-protobuf/
 COPY src src
 
 # Get rid of the "cp" when cargo build --out is stable

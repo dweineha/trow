@@ -1,7 +1,3 @@
-pub mod trow_proto {
-    include!("../trow-protobuf/out/trow.rs");
-}
-
 use std::convert::TryInto;
 use std::io::SeekFrom;
 

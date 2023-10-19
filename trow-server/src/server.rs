@@ -9,7 +9,6 @@ use anyhow::{anyhow, Result};
 use async_recursion::async_recursion;
 use chrono::prelude::*;
 use futures::future::try_join_all;
-use prost_types::Timestamp;
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{self, Method};
 use thiserror::Error;
@@ -26,13 +25,10 @@ use crate::digest::sha256_tag_digest;
 use crate::image::RemoteImage;
 use crate::manifest::{manifest_media_type, FromJson, Manifest};
 use crate::proxy_auth::{ProxyClient, SingleRegistryProxyConfig};
+use crate::::api_types::Registry;
 use crate::server::trow_server::registry_server::Registry;
 use crate::temporary_file::TemporaryFile;
 use crate::{metrics, ImageValidationConfig, RegistryProxiesConfig};
-
-pub mod trow_server {
-    include!("../../trow-protobuf/out/trow.rs");
-}
 
 static SUPPORTED_DIGESTS: [&str; 1] = ["sha256"];
 static MANIFESTS_DIR: &str = "manifests";
@@ -41,6 +37,11 @@ static UPLOADS_DIR: &str = "scratch";
 
 static PROXY_DIR: &str = "f/"; //Repositories starting with this are considered proxies
 static DIGEST_HEADER: &str = "Docker-Content-Digest";
+
+pub struct Timestamp {
+    pub seconds: i64,
+    pub nanos: i32,
+}
 
 /* Struct implementing callbacks for the Frontend
  *
