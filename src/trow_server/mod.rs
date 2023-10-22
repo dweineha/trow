@@ -1,4 +1,5 @@
 mod admission;
+pub mod api_types;
 pub mod digest;
 mod image;
 pub mod manifest;
@@ -6,16 +7,14 @@ mod metrics;
 mod proxy_auth;
 mod server;
 mod temporary_file;
-pub mod api_types;
 
 use std::future::Future;
 
+use anyhow::Result;
+
 pub use admission::ImageValidationConfig;
 pub use proxy_auth::{RegistryProxiesConfig, SingleRegistryProxyConfig};
-use server::trow_server::admission_controller_server::AdmissionControllerServer;
-use server::trow_server::registry_server::RegistryServer;
-use server::TrowServer;
-use tonic::transport::Server;
+pub use server::TrowServer;
 
 pub struct TrowServerBuilder {
     data_path: String,
@@ -42,28 +41,11 @@ pub fn build_server(
 }
 
 impl TrowServerBuilder {
-    pub fn add_tls(mut self, tls_cert: Vec<u8>, tls_key: Vec<u8>) -> TrowServerBuilder {
-        self.tls_cert = Some(tls_cert);
-        self.tls_key = Some(tls_key);
-        self
-    }
-
-    pub fn add_root_cert(mut self, root_key: Vec<u8>) -> TrowServerBuilder {
-        self.root_key = Some(root_key);
-        self
-    }
-
-    pub fn get_server_future(self) -> impl Future<Output = Result<(), tonic::transport::Error>> {
-        let ts = TrowServer::new(
+    pub fn get_server_future(self) -> impl Future<Output = Result<TrowServer>> {
+        TrowServer::new(
             &self.data_path,
             self.proxy_registry_config,
             self.image_validation_config,
         )
-        .expect("Failure configuring Trow Server");
-
-        Server::builder()
-            .add_service(RegistryServer::new(ts.clone()))
-            .add_service(AdmissionControllerServer::new(ts))
-            .serve(self.listen_addr)
     }
 }

@@ -6,6 +6,7 @@ mod routes;
 pub mod types;
 
 mod registry_interface;
+mod trow_server;
 #[cfg(feature = "sqlite")]
 mod users;
 
@@ -21,7 +22,7 @@ use client_interface::ClientInterface;
 use futures::Future;
 use thiserror::Error;
 use tracing::{event, Level};
-use trow_server::{ImageValidationConfig, RegistryProxiesConfig};
+use trow_server::{ImageValidationConfig, RegistryProxiesConfig, TrowServer};
 use uuid::Uuid;
 
 //TODO: Make this take a cause or description
@@ -84,7 +85,7 @@ struct UserConfig {
 
 fn init_trow_server(
     config: TrowConfig,
-) -> Result<impl Future<Output = Result<(), tonic::transport::Error>>> {
+) -> Result<impl Future<Output = Result<TrowServer>>> {
     event!(Level::DEBUG, "Starting Trow server");
 
     //Could pass full config here.
@@ -96,12 +97,6 @@ fn init_trow_server(
         config.proxy_registry_config,
         config.image_validation_config,
     );
-    //TODO: probably shouldn't be reusing this cert
-    let ts = if let Some(tls) = config.tls {
-        ts.add_tls(fs::read(tls.cert_file)?, fs::read(tls.key_file)?)
-    } else {
-        ts
-    };
 
     Ok(ts.get_server_future())
 }
@@ -283,9 +278,7 @@ async fn shutdown_signal(handle: axum_server::Handle) {
     handle.graceful_shutdown(Some(Duration::from_secs(30)));
 }
 
-pub fn build_handlers() -> Result<ClientInterface> {
-    event!(Level::DEBUG, "Address for backend: {}", listen_addr);
-
+pub fn build_handlers(ts: &TrowServer) -> Result<ClientInterface> {
     //TODO this function is useless currently
-    ClientInterface::new()
+    ClientInterface::new(ts)
 }

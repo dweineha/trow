@@ -11,14 +11,14 @@ pub struct UploadDetails {
     pub uuid: String,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct UploadRef {
     pub repo_name: String,
 
     pub uuid: String,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct BlobRef {
     pub repo_name: String,
 
@@ -132,11 +132,39 @@ pub struct ManifestHistoryRequest {
     pub last_digest: String,
 }
 
+#[derive(thiserror::Error, Debug)]
+pub enum Status {
+    #[error("Cancelled: {0}")]
+    Cancelled(String),
+    #[error("Unknown: {0}")]
+    Unknown(String),
+    #[error("InvalidArgument: {0}")]
+    InvalidArgument(String),
+    #[error("DeadlineExceeded: {0}")]
+    DeadlineExceeded(String),
+    #[error("NotFound: {0}")]
+    NotFound(String),
+    #[error("AlreadyExists: {0}")]
+    AlreadyExists(String),
+    #[error("FailedPrecondition: {0}")]
+    FailedPrecondition(String),
+    #[error("Internal: {0}")]
+    Internal(String),
+    #[error("Unavailable: {0}")]
+    Unavailable(String),
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Timestamp {
+    pub seconds: i64,
+    pub nanos: i32,
+}
+
 #[derive(Clone, PartialEq)]
 pub struct ManifestHistoryEntry {
     pub digest: String,
 
-    pub date: Option<::prost_types::Timestamp>,
+    pub date: Option<Timestamp>,
 }
 
 #[derive(Clone, PartialEq)]
