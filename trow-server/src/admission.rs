@@ -1,7 +1,6 @@
 use anyhow::Result;
 use json_patch::{Patch, PatchOperation, ReplaceOperation};
 use serde::{Deserialize, Serialize};
-use tonic::{Request, Response, Status};
 use tracing::{event, Level};
 
 use crate::image::RemoteImage;

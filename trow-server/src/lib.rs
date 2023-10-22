@@ -19,7 +19,6 @@ use tonic::transport::Server;
 
 pub struct TrowServerBuilder {
     data_path: String,
-    listen_addr: std::net::SocketAddr,
     proxy_registry_config: Option<RegistryProxiesConfig>,
     image_validation_config: Option<ImageValidationConfig>,
     tls_cert: Option<Vec<u8>>,
@@ -29,13 +28,11 @@ pub struct TrowServerBuilder {
 
 pub fn build_server(
     data_path: &str,
-    listen_addr: std::net::SocketAddr,
     proxy_registry_config: Option<RegistryProxiesConfig>,
     image_validation_config: Option<ImageValidationConfig>,
 ) -> TrowServerBuilder {
     TrowServerBuilder {
         data_path: data_path.to_string(),
-        listen_addr,
         proxy_registry_config,
         image_validation_config,
         tls_cert: None,

@@ -29,7 +29,6 @@ use crate::types::{self, *};
 
 #[derive(Debug)]
 pub struct ClientInterface {
-    server: String,
 }
 
 fn extract_images(pod: &Pod) -> (Vec<String>, Vec<String>) {
@@ -371,8 +370,8 @@ impl Metrics for ClientInterface {
 }
 
 impl ClientInterface {
-    pub fn new(server: String) -> Result<Self> {
-        Ok(ClientInterface { server })
+    pub fn new() -> Result<Self> {
+        Ok(ClientInterface { })
     }
 
     async fn connect_registry(

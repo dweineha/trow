@@ -56,7 +56,6 @@ pub struct TrowConfig {
     data_dir: String,
     addr: SocketAddr,
     tls: Option<TlsConfig>,
-    grpc: GrpcConfig,
     service_name: String,
     proxy_registry_config: Option<RegistryProxiesConfig>,
     image_validation_config: Option<ImageValidationConfig>,
@@ -94,7 +93,6 @@ fn init_trow_server(
 
     let ts = trow_server::build_server(
         &config.data_dir,
-        config.grpc.listen.parse::<std::net::SocketAddr>()?,
         config.proxy_registry_config,
         config.image_validation_config,
     );
@@ -126,7 +124,6 @@ impl TrowBuilder {
             data_dir,
             addr,
             tls: None,
-            grpc: GrpcConfig { listen },
             service_name,
             proxy_registry_config: None,
             image_validation_config: None,
@@ -217,10 +214,9 @@ impl TrowBuilder {
             std::process::exit(0);
         }
 
-        let s = format!("https://{}", self.config.grpc.listen);
         let server_state = TrowServerState {
             config: self.config.clone(),
-            client: build_handlers(s)?,
+            client: build_handlers()?,
         };
 
         let app = routes::create_app(server_state);
@@ -287,9 +283,9 @@ async fn shutdown_signal(handle: axum_server::Handle) {
     handle.graceful_shutdown(Some(Duration::from_secs(30)));
 }
 
-pub fn build_handlers(listen_addr: String) -> Result<ClientInterface> {
+pub fn build_handlers() -> Result<ClientInterface> {
     event!(Level::DEBUG, "Address for backend: {}", listen_addr);
 
     //TODO this function is useless currently
-    ClientInterface::new(listen_addr)
+    ClientInterface::new()
 }
