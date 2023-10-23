@@ -1,5 +1,4 @@
 use anyhow::Result;
-use async_trait::async_trait;
 use json_patch::{Patch, PatchOperation, ReplaceOperation};
 use serde::{Deserialize, Serialize};
 use tracing::{event, Level};
@@ -140,11 +139,11 @@ impl TrowServer {
             ))
         })?);
 
-        return Ok(AdmissionResponse {
+        Ok(AdmissionResponse {
             patch: patch_vec,
             is_allowed: true,
             reason: "".to_string(),
-        });
+        })
     }
 }
 #[cfg(test)]

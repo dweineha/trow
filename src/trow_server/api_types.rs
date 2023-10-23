@@ -1,3 +1,5 @@
+use serde_derive::{Serialize, Deserialize};
+
 #[derive(Clone, PartialEq)]
 pub struct UploadRequest {
     /// e.g. "amouat/network-utils", "nginx", "my-org/my-team/my-repo"
@@ -167,28 +169,22 @@ pub struct ManifestHistoryEntry {
     pub date: Option<Timestamp>,
 }
 
-#[derive(Clone, PartialEq)]
-pub struct HealthRequest {}
-/// Unhealthy Status is indicated by return code e.g. unavailableh
-
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct HealthStatus {
+    pub is_healthy: bool,
     pub message: String,
 }
 
-#[derive(Clone, PartialEq)]
-pub struct ReadinessRequest {}
-/// Not Ready Status is indicated by return code e.g. unavailable
-
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct ReadyStatus {
+    pub is_ready: bool,
     pub message: String,
 }
 
 #[derive(Clone, PartialEq)]
 pub struct MetricsRequest {}
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct MetricsResponse {
     pub metrics: String,
 }

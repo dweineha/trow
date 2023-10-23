@@ -1019,35 +1019,37 @@ impl TrowServer {
     }
 
     // Readiness check
-    async fn is_ready(&self, _request: ReadinessRequest) -> Result<ReadyStatus, Status> {
+    pub async fn is_ready(&self) -> ReadyStatus {
         for path in &[&self.scratch_path, &self.manifests_path, &self.blobs_path] {
             match is_path_writable(path) {
                 Ok(true) => {}
                 Ok(false) => {
-                    return Err(Status::Unavailable(format!(
-                        "{} is not writable",
-                        path.to_string_lossy()
-                    )));
+                    return ReadyStatus {
+                        is_ready: false,
+                        message: format!("{} is not writable", path.to_string_lossy()),
+                    };
                 }
                 Err(error) => {
-                    return Err(Status::Unavailable(error.to_string()));
+                    return ReadyStatus {
+                        is_ready: false,
+                        message: format!("error: {error}"),
+                    }
                 }
             }
         }
 
-        //All paths writable
-        let reply = ReadyStatus {
+        // All paths writable
+        ReadyStatus {
+            is_ready: true,
             message: String::from("Ready"),
-        };
-
-        Ok(reply)
+        }
     }
 
-    async fn is_healthy(&self, _request: HealthRequest) -> Result<HealthStatus, Status> {
-        let reply = HealthStatus {
+    pub async fn is_healthy(&self) -> HealthStatus {
+        HealthStatus {
+            is_healthy: true,
             message: String::from("Healthy"),
-        };
-        Ok(reply)
+        }
     }
 
     pub async fn get_metrics(&self, _request: MetricsRequest) -> Result<MetricsResponse, Status> {

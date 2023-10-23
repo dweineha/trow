@@ -6,7 +6,7 @@ mod routes;
 pub mod types;
 
 mod registry_interface;
-mod trow_server;
+pub mod trow_server;
 #[cfg(feature = "sqlite")]
 mod users;
 
@@ -19,7 +19,6 @@ use anyhow::{anyhow, Context, Result};
 use axum::extract::FromRef;
 use axum_server::tls_rustls::RustlsConfig;
 use client_interface::ClientInterface;
-use futures::Future;
 use thiserror::Error;
 use tracing::{event, Level};
 use trow_server::{ImageValidationConfig, RegistryProxiesConfig, TrowServer};
@@ -67,11 +66,6 @@ pub struct TrowConfig {
 }
 
 #[derive(Clone, Debug)]
-struct GrpcConfig {
-    listen: String,
-}
-
-#[derive(Clone, Debug)]
 struct TlsConfig {
     cert_file: String,
     key_file: String,
@@ -85,7 +79,7 @@ struct UserConfig {
 
 fn init_trow_server(
     config: TrowConfig,
-) -> Result<impl Future<Output = Result<TrowServer>>> {
+) -> Result<TrowServer> {
     event!(Level::DEBUG, "Starting Trow server");
 
     //Could pass full config here.
@@ -98,7 +92,7 @@ fn init_trow_server(
         config.image_validation_config,
     );
 
-    Ok(ts.get_server_future())
+    ts.get_server()
 }
 
 pub struct TrowBuilder {
@@ -110,7 +104,6 @@ impl TrowBuilder {
     pub fn new(
         data_dir: String,
         addr: SocketAddr,
-        listen: String,
         service_name: String,
         dry_run: bool,
         cors: Option<Vec<String>>,
@@ -208,16 +201,15 @@ impl TrowBuilder {
             println!("Dry run, exiting.");
             std::process::exit(0);
         }
+        let trow_server = init_trow_server(self.config.clone())?;
 
         let server_state = TrowServerState {
             config: self.config.clone(),
-            client: build_handlers()?,
+            client: build_handlers(trow_server)?,
         };
 
         let app = routes::create_app(server_state);
 
-        // Start GRPC Backend task
-        tokio::task::spawn(init_trow_server(self.config.clone())?);
 
         // Listen for termination signal
         let handle = axum_server::Handle::new();
@@ -278,7 +270,7 @@ async fn shutdown_signal(handle: axum_server::Handle) {
     handle.graceful_shutdown(Some(Duration::from_secs(30)));
 }
 
-pub fn build_handlers(ts: &TrowServer) -> Result<ClientInterface> {
+pub fn build_handlers(ts: TrowServer) -> Result<ClientInterface> {
     //TODO this function is useless currently
     ClientInterface::new(ts)
 }
